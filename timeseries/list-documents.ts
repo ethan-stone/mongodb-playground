@@ -16,7 +16,7 @@ async function main() {
 
   const array = await cursor.toArray();
 
-  console.log(JSON.stringify(array));
+  console.log(JSON.stringify(array, undefined, 4));
 
   await mongoClient.close();
 }
