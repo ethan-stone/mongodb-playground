@@ -16,6 +16,7 @@
     "bson": "^4.7.0",
     "chance": "^1.1.8",
     "dotenv": "^16.0.3",
-    "mongodb": "^4.10.0"
+    "mongodb": "^4.10.0",
+    "mongodb-client-encryption": "^2.3.0"
   }
 }

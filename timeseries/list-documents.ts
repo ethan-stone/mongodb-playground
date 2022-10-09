@@ -4,12 +4,12 @@ import { Log } from "./seed-db";
 
 loadEnv();
 
-const mongoUrl = assertEnvVar(process.env.DATABASE_URL, "Missing mongo url");
+const mongourl = assertEnvVar(process.env.DATABASE_URL, "Missing mongo url");
 
-const mongoClient = new MongoClient(mongoUrl);
+const client = new MongoClient(mongourl);
 
 async function main() {
-  const db = mongoClient.db("timeseries");
+  const db = client.db("timeseries");
   const collection = db.collection<Log>("logs");
 
   const cursor = collection.find({}, { skip: 0, limit: 10 });
@@ -18,7 +18,7 @@ async function main() {
 
   console.log(JSON.stringify(array, undefined, 4));
 
-  await mongoClient.close();
+  await client.close();
 }
 
 main();

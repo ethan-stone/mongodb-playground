@@ -1,0 +1,3 @@
+name: mongodb-playground
+description: A project to experiment with mongodb
+runtime: nodejs
