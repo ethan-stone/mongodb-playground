@@ -58,14 +58,14 @@ class UserRepo {
     return mongoUser;
   }
 
-  private async deserialize(mongoUser: MongoUser) {
-    const user: User = {
-      _id: mongoUser._id.toString(),
-      email: await encryption.decrypt(mongoUser.email)
-    };
+  // private async deserialize(mongoUser: MongoUser) {
+  //   const user: User = {
+  //     _id: mongoUser._id.toString(),
+  //     email: await encryption.decrypt(mongoUser.email)
+  //   };
 
-    return user;
-  }
+  //   return user;
+  // }
 
   public async insertOne(user: UserInsert) {
     const mongoUser = await this.serialize({ _id: randomUUID(), ...user });

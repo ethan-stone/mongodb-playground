@@ -1,8 +1,7 @@
-import { Binary, UUID } from "bson";
-import { Collection, Db, MongoClient } from "mongodb";
+import { Binary } from "bson";
+import { MongoClient } from "mongodb";
 import { ClientEncryption } from "mongodb-client-encryption";
 import { loadEnv, assertEnvVar } from "../helpers/load-env";
-import { randomUUID } from "crypto";
 import { Chance } from "chance";
 
 loadEnv();
