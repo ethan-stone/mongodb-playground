@@ -14,7 +14,11 @@ async function main() {
     });
   }
 
+  const start = new Date().getTime();
   const result = await userRepo.insertMany(usersArray);
+  const end = new Date().getTime();
+
+  console.log(`time: ${(end - start) / 1000}`);
 
   console.log("Result\n-----------");
   console.log(result);

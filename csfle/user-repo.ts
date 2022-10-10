@@ -75,14 +75,15 @@ class UserRepo {
   }
 
   public async insertMany(users: Array<UserInsert>) {
-    const mongoUsers = await Promise.all(
-      users.map((user) => {
-        return this.serialize({
+    const mongoUsers: Array<MongoUser> = [];
+    for (const user of users) {
+      mongoUsers.push(
+        await this.serialize({
           _id: randomUUID(),
           ...user
-        });
-      })
-    );
+        })
+      );
+    }
 
     const result = await this.collection.insertMany(mongoUsers);
 
