@@ -12,10 +12,6 @@ const monogdbPlaygroundSA = new gcp.serviceaccount.Account(
   }
 );
 
-new gcp.serviceaccount.Key("mongodb-playground-sa-key", {
-  serviceAccountId: monogdbPlaygroundSA.name
-});
-
 const mongodbPlaygroundKeyRing = new gcp.kms.KeyRing("mongodb-playground", {
   location: "global"
 });

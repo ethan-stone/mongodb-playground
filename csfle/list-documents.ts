@@ -5,7 +5,6 @@ import {
   ClientEncryptionOptions
 } from "mongodb-client-encryption";
 import { assertEnvVar, loadEnv } from "../helpers/load-env";
-import { Chance } from "chance";
 
 loadEnv();
 
@@ -13,11 +12,14 @@ const mongurl = assertEnvVar(process.env.DATABASE_URL, "Missing mongo url");
 
 const client = new MongoClient(mongurl);
 
-const chance = new Chance();
-
 type User = {
   _id: UUID;
   email: Binary; // email is encrypted thus it should be binary
+};
+
+type DecryptedUser = {
+  _id: UUID;
+  email: string;
 };
 
 async function main() {
@@ -39,23 +41,23 @@ async function main() {
 
   const encryption = new ClientEncryption(client, clientEncryptionOptions);
 
-  const dataKeyId = "wVaRu37fSkS4XtelFrT4tg==";
+  const cursor = users.find({}, { skip: 0, limit: 100 });
 
-  const usersArray: User[] = [];
-  for (let i = 0; i < 100; i++) {
-    usersArray.push({
-      _id: new UUID(),
-      email: await encryption.encrypt(chance.email(), {
-        algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
-        keyId: new Binary(Buffer.from(dataKeyId, "base64"), 4)
-      })
+  const usersArray = await cursor.toArray();
+
+  console.log("Encrypted users");
+  console.log(usersArray);
+
+  const decryptedUsers: DecryptedUser[] = [];
+  for (const user of usersArray) {
+    decryptedUsers.push({
+      _id: user._id,
+      email: await encryption.decrypt(user.email)
     });
   }
 
-  await users.insertMany(usersArray);
-
-  console.log("Users inserted");
-  console.log(usersArray);
+  console.log("Decrypted users");
+  console.log(decryptedUsers);
 
   await client.close();
 }

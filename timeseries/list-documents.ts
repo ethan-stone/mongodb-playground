@@ -4,7 +4,7 @@ import { Log } from "./seed-db";
 
 loadEnv();
 
-const mongourl = assertEnvVar(process.env.DATABASE_URL, "Missing mongo url");
+const mongourl = assertEnvVar(process.env.DATABASE_URL, "Missing DATABASE_URL");
 
 const client = new MongoClient(mongourl);
 
