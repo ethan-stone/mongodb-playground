@@ -1,4 +1,5 @@
-import { userRepo, User } from "./user-repo";
+import { User } from "./user-repo";
+import { playground } from "./playground-sdk";
 
 type Event = {
   body: {
@@ -24,7 +25,7 @@ class UserDTOMapper {
 }
 
 export const handler = async (event: Event): Promise<UserDTO> => {
-  const user = await userRepo.findOne({ _id: event.body.id });
+  const user = await playground.users.findOne({ _id: event.body.id });
   if (!user) throw new Error("User not found");
   const userDTO = UserDTOMapper.fromDomainToDTO(user);
   return userDTO;

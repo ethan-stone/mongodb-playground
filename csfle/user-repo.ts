@@ -1,14 +1,10 @@
 import { Binary, UUID } from "bson";
-import { Collection, Db, Filter, MongoClient } from "mongodb";
+import { Collection, Db, Filter } from "mongodb";
 import { ClientEncryption } from "mongodb-client-encryption";
-import { loadEnv, assertEnvVar } from "../helpers/load-env";
+import { assertEnvVar } from "../helpers/load-env";
 import { randomUUID } from "crypto";
+import { client } from "./playground-sdk";
 
-loadEnv();
-
-const dburl = assertEnvVar(process.env.DATABASE_URL, "Missing DATABASDE_URL");
-
-const client = new MongoClient(dburl);
 const encryption = new ClientEncryption(client, {
   keyVaultNamespace: "encryption.__keyVault",
   kmsProviders: {
@@ -40,7 +36,7 @@ type DbUserFilter = Filter<DbUser>;
 
 const dataKeyId = "wVaRu37fSkS4XtelFrT4tg==";
 
-class UserRepo {
+export class UserRepo {
   private datasource: Collection<DbUser>;
 
   constructor(db: Db) {
@@ -113,5 +109,3 @@ class UserRepo {
     return dbUser && this.fromDbToDomain(dbUser);
   }
 }
-
-export const userRepo = new UserRepo(client.db("repos"));
