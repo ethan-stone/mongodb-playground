@@ -1,17 +1,14 @@
 import { Binary, UUID } from "bson";
-import { Collection, Db, MongoClient } from "mongodb";
+import { Collection, Db, Filter, MongoClient } from "mongodb";
 import { ClientEncryption } from "mongodb-client-encryption";
 import { loadEnv, assertEnvVar } from "../helpers/load-env";
 import { randomUUID } from "crypto";
 
 loadEnv();
 
-const mongourl = assertEnvVar(
-  process.env.DATABASE_URL,
-  "Missing DATABASDE_URL"
-);
+const dburl = assertEnvVar(process.env.DATABASE_URL, "Missing DATABASDE_URL");
 
-const client = new MongoClient(mongourl);
+const client = new MongoClient(dburl);
 const encryption = new ClientEncryption(client, {
   keyVaultNamespace: "encryption.__keyVault",
   kmsProviders: {
@@ -25,7 +22,7 @@ const encryption = new ClientEncryption(client, {
   }
 });
 
-type MongoUser = {
+type DbUser = {
   _id: UUID;
   email: Binary; // encrypted
 };
@@ -37,17 +34,26 @@ export type User = {
 
 export type UserInsert = Omit<User, "_id">;
 
+export type UserFilter = Partial<User>;
+
+type DbUserFilter = Filter<DbUser>;
+
 const dataKeyId = "wVaRu37fSkS4XtelFrT4tg==";
 
 class UserRepo {
-  private collection: Collection<MongoUser>;
+  private datasource: Collection<DbUser>;
 
   constructor(db: Db) {
-    this.collection = db.collection<MongoUser>("users");
+    this.datasource = db.collection<DbUser>("users");
   }
 
-  private async serialize(user: User) {
-    const mongoUser: MongoUser = {
+  /**
+   * Converts from user domain type to user db type
+   * @param user the user domain type to convert to user db type
+   * @returns the user db type
+   */
+  private async fromDomainToDb(user: User) {
+    const dbUser: DbUser = {
       _id: new UUID(user._id),
       email: await encryption.encrypt(user.email, {
         algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
@@ -55,41 +61,56 @@ class UserRepo {
       })
     };
 
-    return mongoUser;
+    return dbUser;
   }
 
-  // private async deserialize(mongoUser: MongoUser) {
-  //   const user: User = {
-  //     _id: mongoUser._id.toString(),
-  //     email: await encryption.decrypt(mongoUser.email)
-  //   };
+  /**
+   * Converts from user db type to user domain type
+   * @param dbUser the user db type to convert to user domain type
+   * @returns the user domain type
+   */
+  private async fromDbToDomain(dbUser: DbUser) {
+    const user: User = {
+      _id: dbUser._id.toString(),
+      email: await encryption.decrypt(dbUser.email)
+    };
 
-  //   return user;
-  // }
+    return user;
+  }
 
   public async insertOne(user: UserInsert) {
-    const mongoUser = await this.serialize({ _id: randomUUID(), ...user });
-    const result = await this.collection.insertOne(mongoUser);
+    const dbUser = await this.fromDomainToDb({ _id: randomUUID(), ...user });
+    const result = await this.datasource.insertOne(dbUser);
     if (!result.acknowledged) throw new Error("Operation was not acknowledged");
     return { _id: result.insertedId };
   }
 
   public async insertMany(users: Array<UserInsert>) {
-    const mongoUsers: Array<MongoUser> = [];
+    const dbUsers: Array<DbUser> = [];
     for (const user of users) {
-      mongoUsers.push(
-        await this.serialize({
+      dbUsers.push(
+        await this.fromDomainToDb({
           _id: randomUUID(),
           ...user
         })
       );
     }
 
-    const result = await this.collection.insertMany(mongoUsers);
+    const result = await this.datasource.insertMany(dbUsers);
 
     return {
       acknowledged: result.acknowledged
     };
+  }
+
+  public async findOne(filter: UserFilter) {
+    const dbFilter: DbUserFilter = {
+      _id: new UUID(filter._id)
+    };
+
+    const dbUser = await this.datasource.findOne(dbFilter);
+
+    return dbUser && this.fromDbToDomain(dbUser);
   }
 }
 
