@@ -1,8 +1,5 @@
-import { loadEnv } from "../helpers/load-env";
 import { Chance } from "chance";
 import { userRepo, UserInsert } from "./user-repo";
-
-loadEnv();
 
 const chance = new Chance();
 
