@@ -99,7 +99,7 @@ export class UserRepo {
     const result = await this.datasource.insertOne(dsUser);
     if (!result.acknowledged) throw new Error("Failed to insert user");
 
-    return { _id: result.insertedId };
+    return { _id: result.insertedId.toString() };
   }
 
   public async insertMany(users: Array<UserInsert>) {
@@ -129,4 +129,4 @@ export class UserRepo {
   }
 }
 
-export const userRepo = new UserRepo(client.db("ddd"));
+export const userRepo = new UserRepo(client.db("csfle"));
