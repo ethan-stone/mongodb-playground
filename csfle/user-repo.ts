@@ -52,7 +52,7 @@ export class UserRepo {
    * @returns the user db type
    */
   private async fromDomainToDS(user: User) {
-    const dbUser: DSUser = {
+    const dsUser: DSUser = {
       _id: new UUID(user._id),
       email: await encryption.encrypt(user.email, {
         algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
@@ -60,7 +60,7 @@ export class UserRepo {
       })
     };
 
-    return dbUser;
+    return dsUser;
   }
 
   /**
